@@ -6,6 +6,7 @@ struct Autoencoder <: SparseEncoder
     encoder
     decoder
 end
+@functor Autoencoder
 
 function encode(M::Autoencoder,x)
     return M.encoder(x)

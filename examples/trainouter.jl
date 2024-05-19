@@ -1,7 +1,29 @@
 include("prelude.jl")
 
 mnist = mnistloader(batchsize)
+x,y = first(mnist) |> gpu
+
 epochs = 100
+
+function loss(M,x,y)
+    x̂,ŷ = M(x)
+    MSE = Flux.mse(x̂,x)
+    CE = Flux.crossentropy(ŷ,y)
+    return MSE + CE,MSE,CE
+end
+
+function trainmnist(path,opt,epochs)
+    θ = outerenc() |> gpu
+    ϕ = outerdec() |> gpu
+    ψ = outerclassifier() |> gpu
+    outer = Chain(θ,Parallel((args...)->args,ϕ,ψ))
+
+    L = train!(outer,path,loss,mnist,opt,epochs)
+    return outer,L
+end
+
+trainmnist(path*"outer/combined/nowd",opt,epochs)
+trainmnist(path*"outer/combined/wd",opt_wd,epochs)
 
 outer = trainouter(m,mnist,opt,epochs,
                            path*"outer/nowd/")
@@ -37,11 +59,6 @@ p = scatter(xlabel="batch",ylabel="MSE",ylims=(0,0.1))
 map(x->f!(x...),[(outer[:L_encoder],"no WD"),
                  (outer_wd[:L_encoder],"WD")]);
 savefig(p,path*"L_outer_encoder.pdf");
-
-θ = outerenc() |> gpu
-ϕ = outerdec() |> gpu
-ψ = outerclassifier() |> gpu
-outerclas = Chain(θ,ψ)
 
 L_clas = train!(outerclas,
                 loader,opt,epochs,logitcrossentropy;

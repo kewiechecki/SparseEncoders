@@ -1,4 +1,13 @@
-using CUDA, LinearAlgebra
+using Flux, CUDA, LinearAlgebra
+
+function clusts(C::AbstractMatrix)
+    return map(x->x[1],argmax(C,dims=1))
+end
+
+function neighborcutoff(G::AbstractArray; ϵ=0.0001)
+    M = G .> ϵ
+    return G .* M
+end
 
 # [CuArray] -> [CuArray]
 # version of Euclidean distance compatible with Flux's automatic differentiation
@@ -14,15 +23,15 @@ end
 
 # [CuArray] -> [CuArray]
 # returns reciprocal Euclidean distance matrix
-function inveucl(x::AbstractArray)
+function inveucl(x::AbstractArray;dims=1)
     return 1 ./ (euclidean(x) .+ eps(Float32))
 end
 
 # [CuArray] -> [CuArray]
 # function to calculate cosine similarity matrix
-function cossim(x::AbstractArray{<:AbstractFloat})
+function cossim(x::AbstractArray{<:AbstractFloat};dims=1)
     # Normalize each column (or row, depending on 'dims') to unit length
-    norms = sqrt.(sum(x .^ 2, dims=1) .+ eps(Float32))
+    norms = sqrt.(sum(x .^ 2, dims=dims) .+ eps(Float32))
     x_normalized = x ./ norms
 
     # Compute the cosine similarity matrix
@@ -34,6 +43,11 @@ function cossim(x::AbstractArray{<:AbstractFloat})
     #C[i] .= 1.0
 
     return C
+end
+
+function sindiff(x::AbstractArray{<:AbstractFloat};dims=1)
+    C = cossim(x;dims=dims)
+    return sqrt.(max.(1 .- C .^ 2,0))
 end
 
 function maskI(n::Integer)

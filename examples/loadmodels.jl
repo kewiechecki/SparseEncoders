@@ -1,3 +1,22 @@
+function loadmnist(m,path)
+    θ = outerenc() |> gpu
+    ϕ = outerdec() |> gpu
+    ψ = outerclassifier() |> gpu
+    M = Chain(θ,Parallel((args...)->args,ϕ,ψ))
+
+    state_M = JLD2.load(path*"/final.jld2","state")
+    Flux.loadmodel!(M,state_M)
+
+    L = CSV.File(path*"/loss.csv") |> DataFrame
+    rename!(L,["L","MSE","CE"])
+
+    return Dict([(:encoder,θ),
+                 (:classifier,ψ),
+                 (:decoder,ϕ),
+                 (:L,L),
+                 (:path,path)])
+end
+
 macro loadinner(path,m,d,k)
     return esc(quote
         sae = loadinner(()->SAE($m,$d),$path*"SAE/")

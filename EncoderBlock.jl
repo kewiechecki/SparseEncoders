@@ -1,4 +1,6 @@
+using Flux,Functors
 import Base.size
+import Base.mapreduce
 
 struct EncoderBlock
     heads::Parallel

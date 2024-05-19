@@ -7,8 +7,6 @@ using Plots.PlotMeasures
 import Base.map
 import ProgressMeter.update!
 
-include("SparseEncoders.jl")
-
 include("SAE.jl")
 include("PSAE.jl")
 include("EncoderBlock.jl")
