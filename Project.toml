@@ -1,0 +1,6 @@
+name = "SparseEncoders"
+uuid = "428d1cf4-2c7c-4c47-8a74-d51c084bd823"
+version = "0.1.0"
+
+[deps]
+Flux = "587475ba-b771-5e3f-ad9e-33799f191a9c"
